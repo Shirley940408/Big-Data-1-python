@@ -27,9 +27,9 @@ def output_format(kv):
 
 def main(inputs, output):
     # main logic starts here
-    text = sc.textFile(inputs)
-    words = text.flatMap(words_once).repartition(128)
-    wordcount = words.reduceByKey(add, numPartitions=128)
+    text = sc.textFile(inputs).repartition(32)
+    words = text.flatMap(words_once)
+    wordcount = words.reduceByKey(add, numPartitions=32)
 
     outdata = wordcount.sortBy(get_key).map(output_format)
     outdata.saveAsTextFile(output)
