@@ -1,4 +1,9 @@
 1. What was wrong with the original wordcount-5 data set that made repartitioning worth it? Why did the program run faster after?
+Gzip files are unsplittable. Each file can only be read by a single task from start to finish. This means that even with many executors available,
+Spark could only launch a handful of input tasks, leaving most executors idle and waiting.
+
+With RDD.repartition(N) reshuffled the data into more partitions after reading. This added one shuffle step,
+but it allowed the later stages(reduceByKey) to run with many more tasks in parallel. That improved load balancing and avoided straggler tasks dominating runtime.
 
 2. The same fix does not make this code run faster on the wordcount-3 data set. (It may be slightly slower?) Why?
 [For once, the answer is not “the data set is too small”.]
