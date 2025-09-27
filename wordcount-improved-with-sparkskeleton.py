@@ -1,3 +1,5 @@
+from collections import Counter
+
 from pyspark import SparkConf, SparkContext
 import sys
 import re, string
@@ -7,8 +9,11 @@ assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
 pattern = re.compile(rf'[{re.escape(string.punctuation)}\s]+')
 
 def words_once(line):
+    count = Counter()
     for w in pattern.split(line):
-        if w: yield w.lower(), 1
+        if w: count[w.lower()] += 1
+    for k, v in count.items():
+        yield k, v
 
 def add(x, y):
     return x + y
@@ -22,8 +27,8 @@ def output_format(kv):
 
 def main(inputs, output):
     # main logic starts here
-    text = sc.textFile(inputs).repartition(128)
-    words = text.flatMap(words_once)
+    text = sc.textFile(inputs)
+    words = text.flatMap(words_once).repartition(128)
     wordcount = words.reduceByKey(add, numPartitions=128)
 
     outdata = wordcount.sortBy(get_key).map(output_format)
