@@ -19,7 +19,7 @@ def main(inputs):
     ranges = sc.range(samples,numSlices=128)
     times = ranges.map(expected_sum)
     total_iters = times.reduce(lambda x, y: x + y)
-    print(total_iters/times)
+    print(total_iters/samples)
 
 if __name__ == '__main__':
     conf = SparkConf().setAppName('euler')
