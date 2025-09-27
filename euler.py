@@ -5,7 +5,7 @@ import sys
 assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
 
 # add more functions as necessary
-def expected_sum():
+def expected_sum(_):
     s = 0.0
     iteration = 0
     while s < 1:
