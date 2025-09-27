@@ -22,3 +22,19 @@ Adding repartition or pre-aggregation doesn’t reduce computation; instead it i
 
 3. How could you modify the wordcount-5 input so that the word count code can process it and get the same results as fast as possible?
 (It's possible to get about another minute off the running time.)
+
+wordcount-5 consists of a few very large .gz files (gzip is not splittable), so each large file becomes：
+a single input split → one long-running task (a straggler) while other executors go idle.
+To speed it up, preprocess the input into many balanced, splittable parts decompress and re-shard into ~64–128 MB plain-text chunks
+After this change, tasks are evenly sized; fewer stragglers → about ~1 minute additional improvement beyond your repartition(32) + mapPartitions optimization.
+
+4.When experimenting with the number of partitions while estimating Euler's constant, you likely didn't see much difference for a range of values,
+and chose the final value in your code somewhere in that range. What range of partitions numbers was “good” (on the desktop/laptop where you were testing)?
+
+The cluster has 8 executors × 1 core each → 8 slots for parallel tasks. With 2–4× tasks per core (so 16–32 partitions here),
+Spark has enough parallel tasks to balance stragglers and keep executors fully busy, but not so many that scheduling overhead becomes a bottleneck.
+
+5. How much overhead does it seem like Spark adds to a job? How much speedup did PyPy get over the usual Python implementation?
+From my runs, a Spark job typically has a fixed startup/scheduling overhead of roughly 10–30 s (driver start, staging to HDFS, etc.).
+On small computations (like Euler with 2^{20} samples), this dominates the wall time; on larger inputs it’s amortized.
+I didn’t measure PyPy on Spark (PyPy didn’t interoperate with PySpark in my setup), will need more time to solve it later.
