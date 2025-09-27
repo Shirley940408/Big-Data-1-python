@@ -8,7 +8,7 @@ pattern = re.compile(rf'[{re.escape(string.punctuation)}\s]+')
 
 def words_once(line):
     for w in pattern.split(line):
-        yield w.lower(), 1
+        if w: yield w.lower(), 1
 
 def add(x, y):
     return x + y
@@ -19,11 +19,12 @@ def get_key(kv):
 def output_format(kv):
     k, v = kv
     return '%s %i' % (k, v)
+
 def main(inputs, output):
     # main logic starts here
-    text = sc.textFile(inputs)
+    text = sc.textFile(inputs).repartition(128)
     words = text.flatMap(words_once)
-    wordcount = words.reduceByKey(add)
+    wordcount = words.reduceByKey(add, numPartitions=128)
 
     outdata = wordcount.sortBy(get_key).map(output_format)
     outdata.saveAsTextFile(output)

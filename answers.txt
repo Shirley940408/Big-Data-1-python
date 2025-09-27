@@ -1,0 +1,7 @@
+1. What was wrong with the original wordcount-5 data set that made repartitioning worth it? Why did the program run faster after?
+
+2. The same fix does not make this code run faster on the wordcount-3 data set. (It may be slightly slower?) Why?
+[For once, the answer is not “the data set is too small”.]
+
+3. How could you modify the wordcount-5 input so that the word count code can process it and get the same results as fast as possible?
+(It's possible to get about another minute off the running time.)
