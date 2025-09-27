@@ -15,7 +15,7 @@ def expected_sum():
 
 def main(inputs):
     # main logic starts here
-    samples = pow(2, inputs)
+    samples = pow(2, int(inputs))
     ranges = sc.range(samples,numSlices=128)
     times = ranges.map(expected_sum)
     total_iters = times.reduce(lambda x, y: x + y)
