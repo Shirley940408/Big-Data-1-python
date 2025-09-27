@@ -8,5 +8,17 @@ but it allowed the later stages(reduceByKey) to run with many more tasks in para
 2. The same fix does not make this code run faster on the wordcount-3 data set. (It may be slightly slower?) Why?
 [For once, the answer is not “the data set is too small”.]
 
+    sya236@pmp-gateway:~$ hdfs dfs -ls /courses/732/wordcount-3 | wc -l
+    1263
+    sya236@pmp-gateway:~$ hdfs dfs -ls /courses/732/wordcount-3 | awk '{s+=$5} END{print s/1024/1024 " MB"}'
+    267.262 MB
+    sya236@pmp-gateway:~$ hdfs dfs -ls /courses/732/wordcount-5 | awk '{s+=$5} END{print s/1024/1024 " MB"}'
+    868.119 MB
+    sya236@pmp-gateway:~$ hdfs dfs -ls /courses/732/wordcount-5 | wc -l
+    9
+
+For wordcount-3, the input consists of many small gzip files, each already mapping to a separate task, so load is fairly balanced.
+Adding repartition or pre-aggregation doesn’t reduce computation; instead it introduces extra shuffle, network transfer, and scheduling overhead, making the program slower.
+
 3. How could you modify the wordcount-5 input so that the word count code can process it and get the same results as fast as possible?
 (It's possible to get about another minute off the running time.)
