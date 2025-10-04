@@ -1,0 +1,15 @@
+1.How much of a difference did the .cache() make in your Reddit ETL code?
+.cache() help avoid re-reading the input and re-parsing JSON for the second branch, which helps the task time drop.
+
+2.When would .cache() make code slower than without?
+- single use: If the RDD is consumed once, caching adds write-to-storage overhead for no benefit.
+- Serialization cost: if transformations are cheap and data is huge, the cache write cost can outweigh savings.
+
+3.Under what conditions will the broadcast join be faster than an actual join?
+- You’ll not reuse the small table many times across different stages requiring re-broadcast (one broadcast amortized over many tasks).
+- You only need a simple map-side combine (e.g., lookups like score / avg[subreddit]): no need to repartition/shuffle big data.
+
+4.When will the broadcast join be slower?
+- Frequent re-broadcasts: If you rebuild/broadcast each stage/iteration (or per partition/function closure), overhead explodes.
+- The join logic isn’t a pure map-side lookup.
+- Data changes frequently: If the small table updates per batch/iteration, you keep rebroadcasting it; a single shuffle join might be cheaper overall.
