@@ -90,8 +90,6 @@ def main():
     averages.explain()
 
 if __name__ == '__main__':
-    conf = SparkConf().setAppName('reddit averages dataframe')
-    sc = SparkContext(conf=conf)
     sc.setLogLevel('WARN')
     assert sc.version >= '3.0'  # make sure we have Spark 3.0+
     main()
