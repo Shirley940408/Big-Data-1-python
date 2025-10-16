@@ -89,7 +89,4 @@ def main():
     averages.write.csv(output, mode='overwrite', header = True)
     averages.explain()
 
-if __name__ == '__main__':
-    sc.setLogLevel('WARN')
-    assert sc.version >= '3.0'  # make sure we have Spark 3.0+
-    main()
+main()
