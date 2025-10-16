@@ -1,0 +1,6 @@
+{"subreddit": "python", "author": "alice", "score": 5}
+{"subreddit": "python", "author": "bob", "score": 3}
+{"subreddit": "datascience", "author": "carol", "score": 10}
+{"subreddit": "datascience", "author": "dave", "score": 2}
+{"subreddit": "machinelearning", "author": "eve", "score": 15}
+{"subreddit": "machinelearning", "author": "frank", "score": 12}
