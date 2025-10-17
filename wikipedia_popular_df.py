@@ -48,7 +48,7 @@ def main(inputs, output):
 
     # 6) join with the previous dataframe
     # joined = df.join(max_per_hour, on="hour")
-    joined_broadcast = df.join(functions.broadcast(max_per_hour), df.hour == functions.col("hour"), how='inner')
+    joined_broadcast = df.join(functions.broadcast(max_per_hour), on="hour", how='inner')
 
     # 7) 只保留 views == max_views 的行（自动保留并列）
     top_view = (joined_broadcast
