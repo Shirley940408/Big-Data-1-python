@@ -79,7 +79,11 @@ submissions_schema = types.StructType([
 
 def main():
     # 创建 SparkSession
-    reddit_submissions = spark.read.json(reddit_submissions_path, schema = submissions_schema).select('subreddit', 'score').cache()
+    reddit_submissions = spark.read.json(reddit_submissions_path, schema = submissions_schema)\
+        .select('subreddit', 'score')\
+        .where(functions.col('subreddit').isNotNull() & functions.col('score').isNotNull())\
+
+    reddit_submissions = reddit_submissions.repartition(512, 'subreddit')
     averages = (
         reddit_submissions
         .groupBy('subreddit')
