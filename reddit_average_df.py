@@ -87,6 +87,6 @@ def main():
         .orderBy('average_score', ascending=False)
     )
     averages.write.csv(output, mode='overwrite', header = True)
-    averages.explain()
+    averages.explain(True)
 
 main()
