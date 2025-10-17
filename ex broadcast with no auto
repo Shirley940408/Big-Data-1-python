@@ -1,0 +1,155 @@
+real    1m50.436s
+user    0m47.429s
+sys     0m4.088s
+
+== Parsed Logical Plan ==
+'Project ['hour, 'title, 'views]
++- Filter (views#18 = max_views#75)
+   +- Project [hour#17, lang#14, title#15, views_str#16, views#18, max_views#75]
+      +- Join Inner, (hour#17 = hour#174)
+         :- Filter isnotnull(views#18)
+         :  +- Project [lang#14, title#15, views_str#16, hour#17, cast(views_str#16 as int) AS views#18]
+         :     +- Filter (NOT (title#15 = Main_Page) AND NOT StartsWith(title#15, Special))
+         :        +- Filter (lang#14 = en)
+         :           +- Project [split(value#0, \s+, -1)[0] AS lang#14, split(value#0, \s+, -1)[1] AS title#15, split(value#0, \s+, -1)[2] AS views_str#16, extract_hour_from_path(filename#2)#13 AS hour#17]
+         :              +- Filter (size(split(value#0, \s+, -1), false) = 4)
+         :                 +- Project [value#0, input_file_name() AS filename#2]
+         :                    +- Relation [value#0] text
+         +- ResolvedHint (strategy=broadcast)
+            +- Aggregate [hour#174], [hour#174, max(views#175) AS max_views#75]
+               +- Filter isnotnull(views#175)
+                  +- Project [lang#171, title#172, views_str#173, hour#174, cast(views_str#173 as int) AS views#175]
+                     +- Filter (NOT (title#172 = Main_Page) AND NOT StartsWith(title#172, Special))
+                        +- Filter (lang#171 = en)
+                           +- Project [split(value#169, \s+, -1)[0] AS lang#171, split(value#169, \s+, -1)[1] AS title#172, split(value#169, \s+, -1)[2] AS views_str#173, extract_hour_from_path(filename#170)#13 AS hour#174]
+                              +- Filter (size(split(value#169, \s+, -1), false) = 4)
+                                 +- Project [value#169, input_file_name() AS filename#170]
+                                    +- Relation [value#169] text
+
+== Analyzed Logical Plan ==
+hour: string, title: string, views: int
+Project [hour#17, title#15, views#18]
++- Filter (views#18 = max_views#75)
+   +- Project [hour#17, lang#14, title#15, views_str#16, views#18, max_views#75]
+      +- Join Inner, (hour#17 = hour#174)
+         :- Filter isnotnull(views#18)
+         :  +- Project [lang#14, title#15, views_str#16, hour#17, cast(views_str#16 as int) AS views#18]
+         :     +- Filter (NOT (title#15 = Main_Page) AND NOT StartsWith(title#15, Special))
+         :        +- Filter (lang#14 = en)
+         :           +- Project [split(value#0, \s+, -1)[0] AS lang#14, split(value#0, \s+, -1)[1] AS title#15, split(value#0, \s+, -1)[2] AS views_str#16, extract_hour_from_path(filename#2)#13 AS hour#17]
+         :              +- Filter (size(split(value#0, \s+, -1), false) = 4)
+         :                 +- Project [value#0, input_file_name() AS filename#2]
+         :                    +- Relation [value#0] text
+         +- ResolvedHint (strategy=broadcast)
+            +- Aggregate [hour#174], [hour#174, max(views#175) AS max_views#75]
+               +- Filter isnotnull(views#175)
+                  +- Project [lang#171, title#172, views_str#173, hour#174, cast(views_str#173 as int) AS views#175]
+                     +- Filter (NOT (title#172 = Main_Page) AND NOT StartsWith(title#172, Special))
+                        +- Filter (lang#171 = en)
+                           +- Project [split(value#169, \s+, -1)[0] AS lang#171, split(value#169, \s+, -1)[1] AS title#172, split(value#169, \s+, -1)[2] AS views_str#173, extract_hour_from_path(filename#170)#13 AS hour#174]
+                              +- Filter (size(split(value#169, \s+, -1), false) = 4)
+                                 +- Project [value#169, input_file_name() AS filename#170]
+                                    +- Relation [value#169] text
+
+== Optimized Logical Plan ==
+Project [hour#17, title#15, views#18]
++- Join Inner, ((views#18 = max_views#75) AND (hour#17 = hour#174)), rightHint=(strategy=broadcast)
+   :- Project [title#15, hour#17, views#18]
+   :  +- Filter (isnotnull(views#18) AND isnotnull(hour#17))
+   :     +- InMemoryRelation [lang#14, title#15, views_str#16, hour#17, views#18], StorageLevel(disk, memory, deserialized, 1 replicas)
+   :           +- *(2) Project [lang#14, title#15, views_str#16, hour#17, cast(views_str#16 as int) AS views#18]
+   :              +- *(2) Project [split(value#0, \s+, -1)[0] AS lang#14, split(value#0, \s+, -1)[1] AS title#15, split(value#0, \s+, -1)[2] AS views_str#16, pythonUDF0#39 AS hour#17]
+   :                 +- BatchEvalPython [extract_hour_from_path(filename#2)#13], [pythonUDF0#39]
+   :                    +- *(1) Filter (((((isnotnull(value#0) AND (size(split(value#0, \s+, -1), false) = 4)) AND (split(value#0, \s+, -1)[0] = en)) AND NOT (split(value#0, \s+, -1)[1] = Main_Page)) AND NOT StartsWith(split(value#0, \s+, -1)[1], Special)) AND isnotnull(cast(split(value#0, \s+, -1)[2] as int)))
+   :                       +- InMemoryTableScan [value#0, filename#2], [isnotnull(value#0), (size(split(value#0, \s+, -1), false) = 4), (split(value#0, \s+, -1)[0] = en), NOT (split(value#0, \s+, -1)[1] = Main_Page), NOT StartsWith(split(value#0, \s+, -1)[1], Special), isnotnull(cast(split(value#0, \s+, -1)[2] as int))]
+   :                             +- InMemoryRelation [value#0, filename#2], StorageLevel(disk, memory, deserialized, 1 replicas)
+   :                                   +- *(1) Project [value#0, input_file_name() AS filename#2]
+   :                                      +- FileScan text [value#0] Batched: false, DataFilters: [], Format: Text, Location: InMemoryFileIndex(1 paths)[hdfs://controller.local:54310/courses/732/pagecounts-3], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<value:string>
+   +- Filter (isnotnull(max_views#75) AND isnotnull(hour#174))
+      +- InMemoryRelation [hour#174, max_views#75], StorageLevel(disk, memory, deserialized, 1 replicas)
+            +- AdaptiveSparkPlan isFinalPlan=true
+               +- == Final Plan ==
+                  ResultQueryStage 2
+                  +- *(2) HashAggregate(keys=[hour#17], functions=[max(views#18)], output=[hour#17, max_views#75])
+                     +- ShuffleQueryStage 1
+                        +- Exchange hashpartitioning(hour#17, 200), ENSURE_REQUIREMENTS, [plan_id=134]
+                           +- *(1) HashAggregate(keys=[hour#17], functions=[partial_max(views#18)], output=[hour#17, max#158])
+                              +- TableCacheQueryStage 0
+                                 +- InMemoryTableScan [hour#17, views#18]
+                                       +- InMemoryRelation [lang#14, title#15, views_str#16, hour#17, views#18], StorageLevel(disk, memory, deserialized, 1 replicas)
+                                             +- *(2) Project [lang#14, title#15, views_str#16, hour#17, cast(views_str#16 as int) AS views#18]
+                                                +- *(2) Project [split(value#0, \s+, -1)[0] AS lang#14, split(value#0, \s+, -1)[1] AS title#15, split(value#0, \s+, -1)[2] AS views_str#16, pythonUDF0#39 AS hour#17]
+                                                   +- BatchEvalPython [extract_hour_from_path(filename#2)#13], [pythonUDF0#39]
+                                                      +- *(1) Filter (((((isnotnull(value#0) AND (size(split(value#0, \s+, -1), false) = 4)) AND (split(value#0, \s+, -1)[0] = en)) AND NOT (split(value#0, \s+, -1)[1] = Main_Page)) AND NOT StartsWith(split(value#0, \s+, -1)[1], Special)) AND isnotnull(cast(split(value#0, \s+, -1)[2] as int)))
+                                                         +- InMemoryTableScan [value#0, filename#2], [isnotnull(value#0), (size(split(value#0, \s+, -1), false) = 4), (split(value#0, \s+, -1)[0] = en), NOT (split(value#0, \s+, -1)[1] = Main_Page), NOT StartsWith(split(value#0, \s+, -1)[1], Special), isnotnull(cast(split(value#0, \s+, -1)[2] as int))]
+                                                               +- InMemoryRelation [value#0, filename#2], StorageLevel(disk, memory, deserialized, 1 replicas)
+                                                                     +- *(1) Project [value#0, input_file_name() AS filename#2]
+                                                                        +- FileScan text [value#0] Batched: false, DataFilters: [], Format: Text, Location: InMemoryFileIndex(1 paths)[hdfs://controller.local:54310/courses/732/pagecounts-3], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<value:string>
+               +- == Initial Plan ==
+                  HashAggregate(keys=[hour#17], functions=[max(views#18)], output=[hour#17, max_views#75])
+                  +- Exchange hashpartitioning(hour#17, 200), ENSURE_REQUIREMENTS, [plan_id=44]
+                     +- HashAggregate(keys=[hour#17], functions=[partial_max(views#18)], output=[hour#17, max#158])
+                        +- InMemoryTableScan [hour#17, views#18]
+                              +- InMemoryRelation [lang#14, title#15, views_str#16, hour#17, views#18], StorageLevel(disk, memory, deserialized, 1 replicas)
+                                    +- *(2) Project [lang#14, title#15, views_str#16, hour#17, cast(views_str#16 as int) AS views#18]
+                                       +- *(2) Project [split(value#0, \s+, -1)[0] AS lang#14, split(value#0, \s+, -1)[1] AS title#15, split(value#0, \s+, -1)[2] AS views_str#16, pythonUDF0#39 AS hour#17]
+                                          +- BatchEvalPython [extract_hour_from_path(filename#2)#13], [pythonUDF0#39]
+                                             +- *(1) Filter (((((isnotnull(value#0) AND (size(split(value#0, \s+, -1), false) = 4)) AND (split(value#0, \s+, -1)[0] = en)) AND NOT (split(value#0, \s+, -1)[1] = Main_Page)) AND NOT StartsWith(split(value#0, \s+, -1)[1], Special)) AND isnotnull(cast(split(value#0, \s+, -1)[2] as int)))
+                                                +- InMemoryTableScan [value#0, filename#2], [isnotnull(value#0), (size(split(value#0, \s+, -1), false) = 4), (split(value#0, \s+, -1)[0] = en), NOT (split(value#0, \s+, -1)[1] = Main_Page), NOT StartsWith(split(value#0, \s+, -1)[1], Special), isnotnull(cast(split(value#0, \s+, -1)[2] as int))]
+                                                      +- InMemoryRelation [value#0, filename#2], StorageLevel(disk, memory, deserialized, 1 replicas)
+                                                            +- *(1) Project [value#0, input_file_name() AS filename#2]
+                                                               +- FileScan text [value#0] Batched: false, DataFilters: [], Format: Text, Location: InMemoryFileIndex(1 paths)[hdfs://controller.local:54310/courses/732/pagecounts-3], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<value:string>
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- Project [hour#17, title#15, views#18]
+   +- BroadcastHashJoin [views#18, hour#17], [max_views#75, hour#174], Inner, BuildRight, false
+      :- Filter (isnotnull(views#18) AND isnotnull(hour#17))
+      :  +- InMemoryTableScan [title#15, hour#17, views#18], [isnotnull(views#18), isnotnull(hour#17)]
+      :        +- InMemoryRelation [lang#14, title#15, views_str#16, hour#17, views#18], StorageLevel(disk, memory, deserialized, 1 replicas)
+      :              +- *(2) Project [lang#14, title#15, views_str#16, hour#17, cast(views_str#16 as int) AS views#18]
+      :                 +- *(2) Project [split(value#0, \s+, -1)[0] AS lang#14, split(value#0, \s+, -1)[1] AS title#15, split(value#0, \s+, -1)[2] AS views_str#16, pythonUDF0#39 AS hour#17]
+      :                    +- BatchEvalPython [extract_hour_from_path(filename#2)#13], [pythonUDF0#39]
+      :                       +- *(1) Filter (((((isnotnull(value#0) AND (size(split(value#0, \s+, -1), false) = 4)) AND (split(value#0, \s+, -1)[0] = en)) AND NOT (split(value#0, \s+, -1)[1] = Main_Page)) AND NOT StartsWith(split(value#0, \s+, -1)[1], Special)) AND isnotnull(cast(split(value#0, \s+, -1)[2] as int)))
+      :                          +- InMemoryTableScan [value#0, filename#2], [isnotnull(value#0), (size(split(value#0, \s+, -1), false) = 4), (split(value#0, \s+, -1)[0] = en), NOT (split(value#0, \s+, -1)[1] = Main_Page), NOT StartsWith(split(value#0, \s+, -1)[1], Special), isnotnull(cast(split(value#0, \s+, -1)[2] as int))]
+      :                                +- InMemoryRelation [value#0, filename#2], StorageLevel(disk, memory, deserialized, 1 replicas)
+      :                                      +- *(1) Project [value#0, input_file_name() AS filename#2]
+      :                                         +- FileScan text [value#0] Batched: false, DataFilters: [], Format: Text, Location: InMemoryFileIndex(1 paths)[hdfs://controller.local:54310/courses/732/pagecounts-3], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<value:string>
+      +- BroadcastExchange HashedRelationBroadcastMode(List(input[1, int, false], input[0, string, false]),false), [plan_id=315]
+         +- Filter (isnotnull(max_views#75) AND isnotnull(hour#174))
+            +- InMemoryTableScan [hour#174, max_views#75], [isnotnull(max_views#75), isnotnull(hour#174)]
+                  +- InMemoryRelation [hour#174, max_views#75], StorageLevel(disk, memory, deserialized, 1 replicas)
+                        +- AdaptiveSparkPlan isFinalPlan=true
+                           +- == Final Plan ==
+                              ResultQueryStage 2
+                              +- *(2) HashAggregate(keys=[hour#17], functions=[max(views#18)], output=[hour#17, max_views#75])
+                                 +- ShuffleQueryStage 1
+                                    +- Exchange hashpartitioning(hour#17, 200), ENSURE_REQUIREMENTS, [plan_id=134]
+                                       +- *(1) HashAggregate(keys=[hour#17], functions=[partial_max(views#18)], output=[hour#17, max#158])
+                                          +- TableCacheQueryStage 0
+                                             +- InMemoryTableScan [hour#17, views#18]
+                                                   +- InMemoryRelation [lang#14, title#15, views_str#16, hour#17, views#18], StorageLevel(disk, memory, deserialized, 1 replicas)
+                                                         +- *(2) Project [lang#14, title#15, views_str#16, hour#17, cast(views_str#16 as int) AS views#18]
+                                                            +- *(2) Project [split(value#0, \s+, -1)[0] AS lang#14, split(value#0, \s+, -1)[1] AS title#15, split(value#0, \s+, -1)[2] AS views_str#16, pythonUDF0#39 AS hour#17]
+                                                               +- BatchEvalPython [extract_hour_from_path(filename#2)#13], [pythonUDF0#39]
+                                                                  +- *(1) Filter (((((isnotnull(value#0) AND (size(split(value#0, \s+, -1), false) = 4)) AND (split(value#0, \s+, -1)[0] = en)) AND NOT (split(value#0, \s+, -1)[1] = Main_Page)) AND NOT StartsWith(split(value#0, \s+, -1)[1], Special)) AND isnotnull(cast(split(value#0, \s+, -1)[2] as int)))
+                                                                     +- InMemoryTableScan [value#0, filename#2], [isnotnull(value#0), (size(split(value#0, \s+, -1), false) = 4), (split(value#0, \s+, -1)[0] = en), NOT (split(value#0, \s+, -1)[1] = Main_Page), NOT StartsWith(split(value#0, \s+, -1)[1], Special), isnotnull(cast(split(value#0, \s+, -1)[2] as int))]
+                                                                           +- InMemoryRelation [value#0, filename#2], StorageLevel(disk, memory, deserialized, 1 replicas)
+                                                                                 +- *(1) Project [value#0, input_file_name() AS filename#2]
+                                                                                    +- FileScan text [value#0] Batched: false, DataFilters: [], Format: Text, Location: InMemoryFileIndex(1 paths)[hdfs://controller.local:54310/courses/732/pagecounts-3], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<value:string>
+                           +- == Initial Plan ==
+                              HashAggregate(keys=[hour#17], functions=[max(views#18)], output=[hour#17, max_views#75])
+                              +- Exchange hashpartitioning(hour#17, 200), ENSURE_REQUIREMENTS, [plan_id=44]
+                                 +- HashAggregate(keys=[hour#17], functions=[partial_max(views#18)], output=[hour#17, max#158])
+                                    +- InMemoryTableScan [hour#17, views#18]
+                                          +- InMemoryRelation [lang#14, title#15, views_str#16, hour#17, views#18], StorageLevel(disk, memory, deserialized, 1 replicas)
+                                                +- *(2) Project [lang#14, title#15, views_str#16, hour#17, cast(views_str#16 as int) AS views#18]
+                                                   +- *(2) Project [split(value#0, \s+, -1)[0] AS lang#14, split(value#0, \s+, -1)[1] AS title#15, split(value#0, \s+, -1)[2] AS views_str#16, pythonUDF0#39 AS hour#17]
+                                                      +- BatchEvalPython [extract_hour_from_path(filename#2)#13], [pythonUDF0#39]
+                                                         +- *(1) Filter (((((isnotnull(value#0) AND (size(split(value#0, \s+, -1), false) = 4)) AND (split(value#0, \s+, -1)[0] = en)) AND NOT (split(value#0, \s+, -1)[1] = Main_Page)) AND NOT StartsWith(split(value#0, \s+, -1)[1], Special)) AND isnotnull(cast(split(value#0, \s+, -1)[2] as int)))
+                                                            +- InMemoryTableScan [value#0, filename#2], [isnotnull(value#0), (size(split(value#0, \s+, -1), false) = 4), (split(value#0, \s+, -1)[0] = en), NOT (split(value#0, \s+, -1)[1] = Main_Page), NOT StartsWith(split(value#0, \s+, -1)[1], Special), isnotnull(cast(split(value#0, \s+, -1)[2] as int))]
+                                                                  +- InMemoryRelation [value#0, filename#2], StorageLevel(disk, memory, deserialized, 1 replicas)
+                                                                        +- *(1) Project [value#0, input_file_name() AS filename#2]
+                                                                           +- FileScan text [value#0] Batched: false, DataFilters: [], Format: Text, Location: InMemoryFileIndex(1 paths)[hdfs://controller.local:54310/courses/732/pagecounts-3], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<value:string>
+
+

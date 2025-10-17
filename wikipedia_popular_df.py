@@ -47,12 +47,12 @@ def main(inputs, output):
     max_per_hour = df.groupby("hour").agg(functions.max("views").alias("max_views")).cache()
 
     # 6) join with the previous dataframe
-    # joined = df.join(max_per_hour, on="hour")
-    joined_broadcast = df.join(functions.broadcast(max_per_hour), on="hour", how='inner')
+    joined = df.join(max_per_hour, on="hour")
+    # joined_broadcast = df.join(functions.broadcast(max_per_hour), on="hour", how='inner')
 
     # 7) 只保留 views == max_views 的行（自动保留并列）
-    top_view = (joined_broadcast
-           .where(joined_broadcast['views'] == joined_broadcast["max_views"])
+    top_view = (joined
+           .where(joined['views'] == joined["max_views"])
            .select("hour", "title", "views"))
 
     # 8) write the result with json
