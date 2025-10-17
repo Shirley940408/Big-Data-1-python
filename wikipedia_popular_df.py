@@ -56,6 +56,7 @@ def main(inputs, output):
 
     # 8) write the result with json
     top_view.orderBy('hour', 'title').write.json(output, mode ='overwrite')
+    top_view.explain(True)
 
 if __name__ == '__main__':
     inputs = sys.argv[1]
