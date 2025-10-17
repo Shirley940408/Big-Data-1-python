@@ -56,3 +56,8 @@ def main(inputs, output):
 
     # 8) write the result with json
     top_view.orderBy('hour', 'title').write.json(output, mode ='overwrite')
+
+if __name__ == '__main__':
+    inputs = sys.argv[1]
+    output = sys.argv[2]
+    main(inputs, output)
