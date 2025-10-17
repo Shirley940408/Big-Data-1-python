@@ -42,11 +42,13 @@ def main(inputs, output):
 
     spark.sql("""
               SELECT tmax.date, tmax.tmax, tmax.station, ROUND((tmax.tmax - tmin.tmin)/10.0, 1) AS range
-              FROM tmax JOIN tmin ON tmax.station = tmin.station AND tmin.date = tmax.date
+              FROM tmax 
+                       
+                       tmin ON tmax.station = tmin.station AND tmin.date = tmax.date
               """).createOrReplaceTempView("range_weather")
 
     result = spark.sql("""
-            SELECT station, date, range
+            SELECT  date, station, range
             FROM range_weather
             ORDER BY range_weather.date, range_weather.station
             """)
