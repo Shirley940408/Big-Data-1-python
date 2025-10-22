@@ -1,0 +1,71 @@
+1. In the Reddit averages execution plan, which fields were loaded?
+How was the average computed (and was a combiner-like step done)?
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- HashAggregate(keys=[subreddit#31], functions=[avg(score#27L)], output=[subreddit#31, average_score#40])
+   +- HashAggregate(keys=[subreddit#31], functions=[partial_avg(score#27L)], output=[subreddit#31, sum#46, count#47L])
+      +- Exchange hashpartitioning(subreddit#31, 512), REPARTITION_BY_NUM, [plan_id=87]
+         +- Project [subreddit#31, score#27L]
+            +- Filter (isnotnull(subreddit#31) AND isnotnull(score#27L))
+
+"Project [subreddit, score] and the following Filter (isnotnull(subreddit) AND isnotnull(score))",
+so at first it is only loaded two columns.
+“   +- HashAggregate(keys=[subreddit#31], functions=[partial_avg(score#27L)], output=[subreddit#31, sum#46, count#47L])”
+This is partial aggregation start from combiner.
+
+2.What was the running time for your Reddit averages implementations in the five scenarios described above?
+How much difference did Python implementation make (PyPy vs the default CPython)?
+Why was it large for RDDs but not for DataFrames?
+Because those executing time ranges are really large, all run for the first (100/23140) tasks and do the estimations.
+MapReduce： 2h 30min
+Spark RDDs(cpython) 4h
+Spark DataFrames(cpython) 4h
+Spark RDDs(pypy) 2h
+Spark DataFrames(pypy) 3h 30min
+
+For DataFrames: The heavy lifting is done in the JVM (Catalyst optimizations, Tungsten/Whole-Stage Codegen, JVM-side operators and shuffles).
+The Python side only handles sending logical plans and collecting results, and the interpreter speed is rarely a hotspot.
+→ Switching to PyPy yields minimal improvements (<5%).
+For RDDs: map/flatMap/reduceByKey functions are executed individually/batch-by-batch in the Python interpreter.
+The Python side becomes the hotspot. → PyPy's JIT significantly reduces interpreter overhead and object allocation costs.
+→ Speedups of 20–30% (or even higher) are common.
+
+Why is the overall performance so slow (hours)?
+ 1) JSON reading + small file hell: reddit-6 contains a large number of small JSON files, and even with a specified schema,
+ all records must be decoded. The large number of tasks results in high scheduling and deserialization costs.
+ 2) A major shuffle: groupBy('subreddit').avg('score') requires shuffling records from the same subreddit together,
+ making the network shuffle the primary bottleneck.
+ 3) The difference between Python and the JVM in terms of limited (DF)/large (RDD) bounds determines whether PyPy's benefits are noticeable.
+
+3.How much of a difference did the broadcast hint make to the Wikipedia popular code's running time (and on what data set)?
+
+I tested the Wikipedia Popular Pages program (wikipedia_popular_df.py) on the pagecounts-3 dataset as instructed.
+	- Dataset: /courses/732/pagecounts-3
+	- Cluster: 8 executors
+	- Two versions of the join step:
+Without broadcast:
+real    2m4.893s
+user    0m47.731s
+sys     0m4.232s
+With broadcast:
+real    1m50.436s
+user    0m47.429s
+sys     0m4.088s
+
+- The max_per_hour DataFrame is very small (only 24 hours × a few days ≈ hundreds of rows).
+- The main DataFrame df is very large (millions of page records).
+- A broadcast join sends the small table (max_per_hour) to all executors, avoiding a costly shuffle of the large table.
+- Therefore, Spark can perform the join locally on each partition of the large dataset.
+
+4. How did the Wikipedia popular execution plan differ with and without the broadcast hint?
+- Without hint: Shuffle both sides + possible sort → High network I/O and more phases.
+- With hint: Broadcast small tables, build in-memory hash tables, and use local probes → Fewer phases and lower network I/O.
+If auto-broadcast is not disabled, Spark may automatically choose BroadcastHashJoin.
+In this case, the plans with and without explicit hint may be identical or very similar (both display Broadcast).
+
+5. For the weather data question, did you prefer writing the “DataFrames + Python methods” style,
+or the “temp tables + SQL syntax” style form solving the problem? Which do you think produces more readable code?
+
+I found the DataFrames + Python methods style both clearer and more readable, especially for multi-stage data transformations.
+The SQL syntax is concise but less maintainable for iterative development or debugging in Spark.
