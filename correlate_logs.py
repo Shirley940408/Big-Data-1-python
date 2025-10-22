@@ -50,7 +50,8 @@ def main(inputs):
     sum_x_i_multiply_y_i = host_byte_df.agg(functions.sum('x_i*y_i')).collect()[0][0]
     n = host_byte_df.count()
     r = (n*sum_x_i_multiply_y_i - sum_x_i*sum_y_i)/(pow(n*sum_x_i_pow_2-pow(sum_x_i,2),1/2)*pow(n*sum_y_i_pow_2-pow(sum_y_i,2),1/2))
-    print (round(r,2))
+    print (f"r = {round(r,6)}")
+    print (f"r^2 = {round(pow(r,2),6)}")
 
 if __name__ == '__main__':
     conf = SparkConf().setAppName('Server Log Correlation')
