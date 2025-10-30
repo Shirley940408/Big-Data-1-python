@@ -48,7 +48,7 @@ def main():
                 hostname, datetimeString, path, numbers_of_bytes_String = get_hostname_datatime_path_bytes(line)
                 # format timeString to timestamp
                 naive = datetime.strptime(datetimeString, "%d/%b/%Y:%H:%M:%S")
-                bound_statement = prepared_statement.bind(tuple(hostname, naive, path, int(numbers_of_bytes_String), uuid.uuid1()))
+                bound_statement = prepared_statement.bind((hostname, naive, path, int(numbers_of_bytes_String), uuid.uuid1()))
                 batch.add(bound_statement)
                 count += 1
                 if count == BATCH_SIZE:
