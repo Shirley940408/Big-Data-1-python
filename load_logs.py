@@ -26,7 +26,7 @@ def get_hostname_datatime_path_bytes(line):
     pattern = re.compile(r'^(\S+) - - \[(\S+) [+-]\d+\] \"[A-Z]+ (\S+) HTTP/\d\.\d\" \d+ (\d+)$')
     match = pattern.match(line)
     if match:
-        return (match.group(i) for i in range (1,5)) # hostname, datetimeString, path, numbers_of_bytes_String
+        return tuple(match.group(i) for i in range (1,5)) # hostname, datetimeString, path, numbers_of_bytes_String
 
 def main():
     input_dir = sys.argv[1]
