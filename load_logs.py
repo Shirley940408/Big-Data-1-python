@@ -45,6 +45,9 @@ def main():
         with gzip.open(os.path.join(input_dir, f), 'rt', encoding='utf-8') as logfile:
             count = 0
             for line in logfile:
+                rec = get_hostname_datatime_path_bytes(line)
+                if not rec:
+                    continue
                 hostname, datetimeString, path, numbers_of_bytes_String = get_hostname_datatime_path_bytes(line)
                 # format timeString to timestamp
                 naive = datetime.strptime(datetimeString, "%d/%b/%Y:%H:%M:%S")
