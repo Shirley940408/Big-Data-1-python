@@ -73,3 +73,5 @@ CREATE TABLE nasalogs (
   req_id   timeuuid,
   PRIMARY KEY ((host), datetime, req_id)
 ) WITH CLUSTERING ORDER BY (datetime ASC);
+
+SELECT sum(bytes) From nasalogs

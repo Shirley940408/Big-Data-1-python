@@ -91,3 +91,6 @@ I have chosen host as primary partition key for making the same host together on
 I have also chosen datatime as cluster key, for it would be easy to sort base on time sequence.
 And the same host could also get http response at the same minute, thus we need another unique id to make the difference, which is req_id (a unique timeuuid).
 In summary, this schema keeps all log entries for the same host on one node, sorted by request time, while preventing overwrites caused by identical timestamps.
+
+6. What was the CQL query you used (or tried) to get the total number of bytes?
+SELECT sum(bytes) From nasalogs
