@@ -6,10 +6,11 @@ import sys
 from pyspark.sql import SparkSession
 from datetime import datetime
 
+from pyspark.sql.types import StructType, StructField, StringType, TimestampType, IntegerType
 
 assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
 import re
-# spark-submit --packages com.datastax.spark:spark-cassandra-connector_2.13:3.5.1 --conf spark.sql.extensions=com.datastax.spark.connector.CassandraSparkExtensions load_logs_spark.py /courses/732/nasa-logs-2 <userid> nasalogs
+# spark-submit --packages com.datastax.spark:spark-cassandra-connector_2.13:3.5.1 --conf spark.sql.extensions=com.datastax.spark.connector.CassandraSparkExtensions load_logs_spark.py /courses/732/nasa-logs-2 sya236 nasalogs
 
 
 # host name, the datetime, the requested path, and the number of bytes
@@ -37,7 +38,7 @@ def web_server_byte_log(line):
         path = match.group(3)
         numbers_of_bytes_String = match.group(4)
         naive = datetime.strptime(datetimeString, "%d/%b/%Y:%H:%M:%S")
-        yield hostname, naive, path, int(numbers_of_bytes_String), uuid.uuid1()  # hostname, datetime, path, numbers_of_bytes, uuid
+        yield hostname, naive, path, int(numbers_of_bytes_String), str(uuid.uuid1())  # hostname, datetime, path, numbers_of_bytes, uuid
 
 def add(x, y):
     return x[0] + y[0], x[1] + y[1]
@@ -48,9 +49,16 @@ def main(inputs):
     rdd = text.flatMap(web_server_byte_log)
     # Repartition by host to improve write parallelism (adjust by cluster size 8).
     # rdd = rdd.keyBy(lambda t: t[0]).repartition(8).values()
+    schema = StructType([
+        StructField("host", StringType(), False),
+        StructField("datetime", TimestampType(), False),
+        StructField("path", StringType(), False),
+        StructField("bytes", IntegerType(), False),
+        StructField("req_id", StringType(), False),
+    ])
     df = spark.createDataFrame(
         rdd,
-        schema=["host", "datetime", "path", "bytes", "req_id"]
+        schema=schema
     )
     # df = rdd.toDF(['host', 'datetime', 'path', 'bytes', 'req_id']).cache()
     namespace = sys.argv[2]
