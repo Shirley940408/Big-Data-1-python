@@ -75,3 +75,12 @@ CREATE TABLE nasalogs (
 ) WITH CLUSTERING ORDER BY (datetime ASC);
 
 SELECT sum(bytes) From nasalogs
+-- If you'd like to clear the data in your table in between runs, you can use this statement in CQLSH:
+-- TRUNCATE nasalogs;
+
+-- without partition
+-- real    5m51.234s
+-- user    0m36.227s
+-- sys     0m4.455s
+--  with partition
+--  rdd = rdd.keyBy(lambda t: t[0]).repartition(8).values()

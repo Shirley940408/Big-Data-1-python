@@ -10,7 +10,7 @@ from pyspark.sql.types import StructType, StructField, StringType, TimestampType
 
 assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
 import re
-# spark-submit --packages com.datastax.spark:spark-cassandra-connector_2.13:3.5.1 --conf spark.sql.extensions=com.datastax.spark.connector.CassandraSparkExtensions load_logs_spark.py /courses/732/nasa-logs-2 sya236 nasalogs
+
 
 
 # host name, the datetime, the requested path, and the number of bytes
