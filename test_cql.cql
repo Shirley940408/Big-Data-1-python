@@ -84,3 +84,8 @@ SELECT sum(bytes) From nasalogs
 -- sys     0m4.455s
 --  with partition
 --  rdd = rdd.keyBy(lambda t: t[0]).repartition(8).values()
+-- real    3m26.456s
+-- user    0m37.888s
+-- sys     0m3.801sreal    3m26.456s
+-- -- user    0m37.888s
+-- -- sys     0m3.801s

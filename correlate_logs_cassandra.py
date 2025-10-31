@@ -6,6 +6,12 @@ from pyspark.sql import functions, SparkSession
 assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
 import re
 
+# spark-submit --packages com.datastax.spark:spark-cassandra-connector_2.13:3.5.1 \
+#   --conf spark.sql.extensions=com.datastax.spark.connector.CassandraSparkExtensions \
+#   --conf spark.cassandra.connection.host=node1.local,node2.local \
+#   correlate_logs_cassandra.py sya236 nasalogs
+
+
 # host name, the datetime, the requested path, and the number of bytes
 # sample_logs = [
 # '''
@@ -22,27 +28,21 @@ import re
 # '''
 # ]
 
-def web_server_byte_log(line):
-    pattern = re.compile(r'^(\S+) - - \[(\S+) [+-]\d+\] \"[A-Z]+ (\S+) HTTP/\d\.\d\" \d+ (\d+)$')
-    match = pattern.match(line)
-    if match:
-        yield match.group(1), (1, int(match.group(4))) # hostname, the number of bytes
-
-def add(x, y):
-    return x[0] + y[0], x[1] + y[1]
-
-def main(inputs):
+def main():
     # main logic starts here
-    # text = sc.parallelize(sample_logs).flatMap(lambda blob: blob.strip().splitlines())
-    text = sc.textFile(inputs)
-    server_bit = text.flatMap(web_server_byte_log)
-    byte_count_flat = server_bit.reduceByKey(add).map(lambda kv: (kv[0], kv[1][0], kv[1][1]))
-    #'hostname', 'count_requests','sum_request_bytes'
-    host_byte_df = byte_count_flat.toDF(['1', 'x_i','y_i'])\
-        .withColumn('x_i^2', pow(functions.col('x_i'),2))\
-        .withColumn('y_i^2', pow(functions.col('y_i'),2))\
-        .withColumn('x_i*y_i', functions.col('x_i')*functions.col('y_i'))
-    # host_byte_df.show()
+    namespace = sys.argv[1]
+    tabel_name = sys.argv[2]
+    df = spark.read.format("org.apache.spark.sql.cassandra") \
+        .options(table=tabel_name, keyspace=namespace).load() \
+        .select('host', 'bytes')
+
+    host_byte_df = df.groupby('host').agg(functions.sum('bytes').alias('y_i'), functions.count('host').alias('x_i')) \
+        .select(functions.col("host").alias("1"), 'x_i', 'y_i') \
+        .withColumn('x_i^2', pow(functions.col('x_i'), 2)) \
+        .withColumn('y_i^2', pow(functions.col('y_i'), 2)) \
+        .withColumn('x_i*y_i', functions.col('x_i') * functions.col('y_i')) \
+        .cache()
+
     sum_x_i = host_byte_df.agg(functions.sum('x_i')).collect()[0][0]
     sum_y_i = host_byte_df.agg(functions.sum('y_i')).collect()[0][0]
     sum_x_i_pow_2 = host_byte_df.agg(functions.sum('x_i^2')).collect()[0][0]
@@ -54,10 +54,10 @@ def main(inputs):
     print (f"r^2 = {round(pow(r,2),6)}")
 
 if __name__ == '__main__':
-    conf = SparkConf().setAppName('Server Log Correlation')
+    conf = SparkConf().setAppName('Server Log Correlation with Cassandra Data')
     sc = SparkContext(conf=conf)
     sc.setLogLevel('WARN')
     assert sc.version >= '3.0'  # make sure we have Spark 3.0+
-    spark = SparkSession.builder.appName('correlation coefficient').getOrCreate()
-    inputs = sys.argv[1]
-    main(inputs)
+    cluster_seeds = ['node1.local', 'node2.local']
+    spark = SparkSession.builder.appName('load_logs_with_spark').config('spark.cassandra.connection.host', ','.join(cluster_seeds)).getOrCreate()
+    main()
