@@ -63,8 +63,9 @@ def main(inputs):
     # df = rdd.toDF(['host', 'datetime', 'path', 'bytes', 'req_id']).cache()
     namespace = sys.argv[2]
     table_name = sys.argv[3]
-    df.write.format("org.apache.spark.sql.cassandra") \
-        .options(table=table_name, keyspace=namespace).save()
+    (df.write.format("org.apache.spark.sql.cassandra")\
+        .options(table=table_name, keyspace=namespace)\
+        .mode("append").save())
 
 
 if __name__ == '__main__':
