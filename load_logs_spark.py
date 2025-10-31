@@ -48,7 +48,7 @@ def main(inputs):
     text = sc.textFile(inputs)
     rdd = text.flatMap(web_server_byte_log)
     # Repartition by host to improve write parallelism (adjust by cluster size 8).
-    # rdd = rdd.keyBy(lambda t: t[0]).repartition(8).values()
+    rdd = rdd.keyBy(lambda t: t[0]).repartition(8).values()
     schema = StructType([
         StructField("host", StringType(), False),
         StructField("datetime", TimestampType(), False),
