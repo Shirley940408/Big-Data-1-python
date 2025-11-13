@@ -19,9 +19,9 @@ messages = spark.readStream.format('kafka') \
         .option('subscribe', topic).load()
 values = messages.select(messages['value'].cast('string'))
 
-query = (values.writeStream
-         .format("console")
-         .outputMode("append")
-         .start())
-
-query.awaitTermination()
+# query = (values.writeStream
+#          .format("console")
+#          .outputMode("append")
+#          .start())
+#
+# query.awaitTermination()
