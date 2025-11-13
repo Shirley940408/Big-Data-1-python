@@ -4,7 +4,6 @@ import sys
 from pyspark.sql import functions, SparkSession
 
 assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
-import re
 
 # spark-submit --packages com.datastax.spark:spark-cassandra-connector_2.13:3.5.1 \
 #   --conf spark.sql.extensions=com.datastax.spark.connector.CassandraSparkExtensions \

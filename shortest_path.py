@@ -1,8 +1,8 @@
 # shortest_path_example.py
 # 用法:
 #   spark-submit shortest_path.py <input_dir> <output_dir> <src> <dst>
-# 例如:
-#   spark-submit shortest_path.py graph-1 output 1 4
+# 例如:/courses/732/graph-1
+#   spark-submit shortest_path.py /courses/732/graph-1 output 1 4
 import sys
 import re
 
