@@ -1,0 +1,156 @@
+Question 1: Debit or credit?
+a.
+The average amount using credit from ontario customer is slightly over using debit,
+which is credit average equal to 121.45, whereas debit average equal to 113.44.
+But the diff over them are not very large.
+b.
+SELECT
+  paymethod.mtype                       AS payment_method,
+  AVG(purchases.amount)
+FROM "dev"."public"."purchases"         AS purchases
+JOIN "dev"."public"."customers"         AS customers ON purchases.custid = customers.custid       -- purchases <-> customers
+JOIN "dev"."public"."paymentmethods"    AS paymethod  ON customers.custid = paymethod.custid     -- customers <-> paymethod
+WHERE customers.province = 'ON'
+GROUP BY paymethod.mtype
+ORDER BY paymethod.mtype;
+
+Question 2: Who spends more overall?
+a. An answer to the original question in prose
+From the result of what we got
+region      number_of_purchases average_of_purchase median_of_purchase
+From_Van	     10384	            86.01	           27.37
+From_BC_non_Van	  3899	            95.16	           30.08
+From_out_BC	     15717	           112.89	           33.27
+
+We can see from this table that People out of BC province has the most high average and median of purchase,
+Thus, Out of BC group spent the most per transaction.
+
+b. A SQL statement to create the required view
+DROP VIEW IF EXISTS vancouver_custs;
+CREATE VIEW vancouver_custs AS
+WITH
+  vprefixes (vp) AS
+    (SELECT DISTINCT pcprefix FROM "dev"."public"."greater_vancouver_prefixes")
+SELECT
+custid,
+CASE
+    WHEN vp IS NOT NULL THEN 1
+    ELSE 0
+END AS in_vancouver
+FROM "dev"."public"."customers" AS customers
+LEFT JOIN vprefixes
+ON SUBSTRING(customers.postalcode, 1, 3) = vprefixes.vp;
+
+c. A SQL query to support your answer for component a
+SELECT
+    CASE
+        WHEN (in_vancouver = 1) THEN 'From_Van'
+        WHEN (in_vancouver = 0 AND customers.province = 'BC') THEN 'From_BC_non_Van'
+        WHEN (customers.province != 'BC') THEN 'From_out_BC'
+    END AS region,
+COUNT(purchases.custid) AS number_of_purchases,
+AVG(amount) AS average_of_purchase,
+MEDIAN(amount) AS median_of_purchase
+FROM "dev"."public"."customers" AS customers
+JOIN "dev"."public"."purchases" AS purchases ON customers.custid = purchases.custid
+JOIN vancouver_custs ON customers.custid = vancouver_custs.custid
+GROUP BY region
+ORDER BY median_of_purchase;
+
+Question 3: Who spends more on sushi?
+a. An answer to the original question in prose
+In_vancouver   average_pay_on_sushi
+0	           85.8
+1	           77.57
+
+From the result we could see that people out side of Vancouver area paid more,
+So tourists spend more on sushi.
+
+b. A SQL query to support your answer for component a
+1) without another WITH clause for temporary table sushi
+SELECT
+in_vancouver,
+AVG(purchases.amount) as average_pay_on_sushi
+FROM vancouver_custs
+JOIN "dev"."public"."purchases" AS purchases ON purchases.custid = vancouver_custs.custid
+JOIN "dev"."public"."amenities" AS amenities ON purchases.amenid = amenities.amenid
+WHERE amenities.amenity = 'restaurant' AND (LOWER(amenities.tags.cuisine::varchar) Like '%sushi%' OR LOWER(amenities.tags.cuisine::varchar) LIKE '%udon%' OR LOWER(amenities.tags.cuisine::varchar) LIKE '%sashimi%')
+GROUP BY in_vancouver
+ORDER BY in_vancouver;
+2) with another WITH clause for temporary table sushi
+WITH sushi (amenid) AS (
+    SELECT DISTINCT amenid FROM "dev"."public"."amenities" AS amenities
+    WHERE amenity = 'restaurant'
+        AND (LOWER(amenities.tags.cuisine::varchar) Like '%sushi%'
+        OR LOWER(amenities.tags.cuisine::varchar) LIKE '%udon%'
+        OR LOWER(amenities.tags.cuisine::varchar) LIKE '%sashimi%'
+        )
+)
+SELECT in_vancouver,
+AVG(purchases.amount) as average_pay_on_sushi
+FROM vancouver_custs
+JOIN "dev"."public"."purchases" AS purchases ON purchases.custid = vancouver_custs.custid
+JOIN sushi ON purchases.amenid = sushi.amenid
+GROUP BY in_vancouver
+ORDER BY in_vancouver;
+
+Question 4: Average purchase per day for the first five days?
+a. An answer to the original question in prose
+pdate       avg
+2021-08-01	96.59
+2021-08-02	106.56
+2021-08-03	95.87
+2021-08-04	115.5
+2021-08-05	95.67
+
+b. A SQL query for Redshift to support your answer for component a
+SELECT
+  pdate,
+  AVG(amount)
+FROM purchases
+WHERE DATE_PART(month, pdate) = 8
+  AND DATE_PART(day, pdate) BETWEEN 1 AND 5
+GROUP BY pdate
+ORDER BY DATE_PART(day, pdate);
+
+c. What was the bytes / record ratio for Redshift on the 5-day query?
+Total rows returned  5
+Total data returned  140 bytes
+bytes / record ratio = (bytes scanned or returned) / (Rows scanned or returned)
+bytes / record ratio = 140 bytes / 5 rows = 28 bytes/record
+
+d. What was the bytes / record ratio for Spectrum on the 5-day query?
+Total rows returned  5
+Total data returned  140 bytes
+bytes / record ratio = (bytes scanned or returned) / (Rows scanned or returned)
+bytes / record ratio = 140 bytes / 5 rows = 28 bytes/record
+
+e. For this purchase dataset, the averages are 57 bytes/line and 968 lines/day.
+(It may be useful to explore the sfu-cmpt-732-redshift bucket to derive these for yourself.)
+From these values, what might you infer about how Redshift scans the table?
+How Spectrum scans the table?
+
+From the query plan of redshift we know:
+The execution flow from Scan - Purchases -> Aggregate -> Sort -> Return shows:
+It scan 30000 rows regareless of date filter. After aggregation, only 4,703 rows remained, and 5 more rows were output.
+The entire process was executed locally on the Redshift cluster nodes.
+
+From the query plan of Spectrum we know:
+Spectrum reads multiple partitions in parallel on S3 and aggregates them through multiple workers,
+also confirm this: max_request_parallelism = 5.
+Therefore, Spectrum's scans are partition-aware scans and do not read irrelevant data.
+
+Given the average:
+Approximately 57 bytes per row
+Approximately 968 rows per day
+That is, approximately 55 KB of data per day
+If Redshift scans the entire month (31 days) of data when performing a 5-day query, then it actually reads approximately:
+55KB/day * 31 = 1.7MB
+While Spectrum only reads:
+55KB/day * 5 = 275KB
+This closely matches s3_scanned_bytes = 267,396. (275 * 1024 = 281600)
+
+f. Based on these computations and the parallelism results, what properties of a dataset might make it well-suited to loading from S3 into Redshift before querying it?
+Small, frequently queried, or perhaps required complex join, calculated, etc.
+g. Conversely, what properties of a dataset might make it well-suited to retaining in S3 and querying it using Spectrum?
+Large, infrequently updated, partitioned datasets.
