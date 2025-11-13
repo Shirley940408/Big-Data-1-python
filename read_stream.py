@@ -4,7 +4,7 @@ Sample Kafka consumer, to verify that messages are coming in on the topic we exp
 # spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 job.py
 import sys
 from kafka import KafkaConsumer
-from pyspark.sql import SparkSession
+# from pyspark.sql import SparkSession
 
 topic = sys.argv[1]
 consumer = KafkaConsumer(topic, bootstrap_servers=['node1.local:9092','node2.local:9092'],auto_offset_reset='latest')
