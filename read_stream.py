@@ -20,19 +20,22 @@ value_with_points = values.withColumn("x", split_col.getItem(0))\
                           .withColumn("y", split_col.getItem(1))\
                           .select("x", "y")
 
-status = (value_with_points.withColumn('n', count(value_with_points.x))
-                            .withColumn('sum_x', sum(col('x')))
-                            .withColumn('sum_y', sum(col('y')))
-                            .withColumn('sum_x*y', sum(col('sum_x')*col('sum_y')))
-                            .withColumn('sum_x^2', sum(pow(col('x'),2)))
-                            .select("n", "sum_x", "sum_y","sum_x*y","'sum_x^2'"))
+status = (value_with_points.withColumn('x_multiply_y', col('x')*col('y'))
+                           .withColumn('pow_x', pow(col('x'),2)))
 
-beta_alpha_df = status.withColumn('beta', (col('sum_x*y') - col('sum_x')*col('sum_y')/col('n'))/(col('sum_x^2') - pow(col('sum_x'),2)/col('n')))\
+aggregate_status = (status.agg(sum(col('x_multiply_y')).alias('sum_x_multiply_y'),
+                                 sum(col('x')).alias('sum_x'),
+                                 sum(col('y')).alias('sum_y'),
+                                 sum(col('pow_x')).alias('sum_pow_x'),
+                                 sum(pow(col('x'),2)).alias('pow_sum_x'),
+                                count(col('x')).alias('n')))
+
+beta_alpha_df = aggregate_status.withColumn('beta', (col('sum_x_multiply_y') - col('sum_x')*col('sum_y')/col('n'))/(col('sum_pow_x') - col('pow_sum_x')/col('n')))\
                       .withColumn('alpha', col('sum_y')/col('n') - col('beta')*col('sum_x')/col('n')).select('beta', 'alpha')
 
 stream = (beta_alpha_df.writeStream
          .format("console")
-         .outputMode("append")
+         .outputMode("complete")
          .start())
 
 stream.awaitTermination()
