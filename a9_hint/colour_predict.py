@@ -55,7 +55,7 @@ def main(inputs):
     
 
     # TODO: create a pipeline RGB colours -> LAB colours -> word; train and evaluate.
-    rgb_to_lab_query = rgb2lab_query(passthrough_columns=[])
+    rgb_to_lab_query = rgb2lab_query(passthrough_columns=['word'])
     lab_sql = SQLTransformer(
         statement=rgb_to_lab_query,
     )
