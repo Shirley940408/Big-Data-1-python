@@ -56,7 +56,7 @@ def rgb2lab_query(table_name='__THIS__', passthrough_columns=None, input_bytes=T
         to_xyz_2 AS (
             SELECT
                 (r2*0.412453 + g2*0.357580 + b2*0.180423)/0.95047 AS x1,
-                (r2*0.212671 + g2*0.715160 + b2*0.072169)         AS y1,f
+                (r2*0.212671 + g2*0.715160 + b2*0.072169)         AS y1,
                 (r2*0.019334 + g2*0.119193 + b2*0.950227)/1.08883 AS z1,
                 {passthrough}
             FROM to_xyz_1
