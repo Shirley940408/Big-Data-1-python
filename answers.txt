@@ -1,0 +1,48 @@
+1. What is your best guess for the slope and intercept of the streaming points being produced?
+-------------------------------------------
+Batch: 98
+-------------------------------------------
++------------------+-----------------+
+|              beta|            alpha|
++------------------+-----------------+
+|-7.329378991167191|32.40168886741861|
++------------------+-----------------+
+Here is the result before I exit this process. The regression stabilized at:
+slope(beta): -7.329378991167191
+intercept(alpha): 32.40168886741861
+
+So the best-fit line for the streaming points is approximately:
+y = -7.329378991167191*x + 32.40168886741861
+
+2. Is your streaming program's estimate of the slope and intercept getting better as the program runs?
+(That is: is the program aggregating all of the data from the start of time, or only those that have arrived since the last output?)
+-------------------------------------------
+Batch: 15
+-------------------------------------------
++------------------+------------------+
+|              beta|             alpha|
++------------------+------------------+
+|-7.562247533471215|27.744110320310824|
++------------------+------------------+
+...
+-------------------------------------------
+Batch: 98
+-------------------------------------------
++------------------+-----------------+
+|              beta|            alpha|
++------------------+-----------------+
+|-7.329378991167191|32.40168886741861|
++------------------+-----------------+
+The result shows that the regression parameters beta and alpha stabilize slowly over time. Therefore, the streaming program is clearly using all historical data,
+not just the newest points. Also we could see that from the structure of each batch there are only 1 point arrived, so the result cannot be calculated directly by itself
+
+3. In the colour classification question, what were your validation scores for the RGB and LAB pipelines?
+
+4. When predicting the tmax values, did you over-fit the training data (and for which training/validation sets)?
+
+5. What were your testing scores for your model with and without the “yesterday's temperature” feature?
+
+6. If you're using a tree-based model, you'll find a .feature Importances property that describes the relative importance of each feature
+(code commented out in weather_test.py; if not, skip this question).
+Have a look with and without the “yesterday's temperature” feature: do the results make sense and suggest that your model is making decisions reasonably?
+With “yesterday's temperature”, is it just predicting “same as yesterday”?
