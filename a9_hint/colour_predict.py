@@ -1,8 +1,8 @@
 import sys
 assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
-
+# command:  spark-submit colour_predict.py /courses/732/colour-words-1
 from pyspark.sql import SparkSession, functions, types
-spark = SparkSession.builder.appName('colour prediction').getOrCreate()
+spark = SparkSession.builder.appName('colour prediction').config("spark.sql.catalogImplementation", "in-memory").getOrCreate()
 spark.sparkContext.setLogLevel('WARN')
 assert spark.version >= '2.4' # make sure we have Spark 2.4+
 
