@@ -1,6 +1,6 @@
 import sys
 assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
-
+# spark-submit weather_test.py weather-model tmax-test
 from pyspark.sql import SparkSession, functions, types
 spark = SparkSession.builder.appName('tmax model tester').getOrCreate()
 assert spark.version >= '2.3' # make sure we have Spark 2.3+

@@ -1,6 +1,7 @@
 import sys
 assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
-# command:  spark-submit colour_predict.py /courses/732/colour-words-1
+# if lab part does not work, please use this command:
+# spark-submit     --conf spark.sql.catalogImplementation=in-memory     --conf spark.sql.warehouse.dir=/tmp/warehouse     colour_predict.py /courses/732/colour-words-1
 from pyspark.sql import SparkSession, functions, types
 spark = SparkSession.builder.appName('colour prediction').config("spark.sql.catalogImplementation", "in-memory").getOrCreate()
 spark.sparkContext.setLogLevel('WARN')

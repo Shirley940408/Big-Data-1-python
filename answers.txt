@@ -37,6 +37,8 @@ The result shows that the regression parameters beta and alpha stabilize slowly 
 not just the newest points. Also we could see that from the structure of each batch there are only 1 point arrived, so the result cannot be calculated directly by itself
 
 3. In the colour classification question, what were your validation scores for the RGB and LAB pipelines?
+Validation score for RGB model: 0.597451
+Validation score for LAB model: 0.712894
 
 4. When predicting the tmax values, did you over-fit the training data (and for which training/validation sets)?
 
