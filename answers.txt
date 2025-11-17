@@ -41,6 +41,8 @@ Validation score for RGB model: 0.597451
 Validation score for LAB model: 0.712894
 
 4. When predicting the tmax values, did you over-fit the training data (and for which training/validation sets)?
+Validation rmse for random forest model: 4.78422
+Validation r2 for random forest model: 0.871994
 
 5. What were your testing scores for your model with and without the “yesterday's temperature” feature?
 
