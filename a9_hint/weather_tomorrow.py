@@ -1,4 +1,4 @@
-# spark-submit weather_tomorrow.py /courses/732/tmax-1 weather-model
+# spark-submit weather_tomorrow.py weather-model
 from datetime import datetime, timedelta
 from pyspark.sql import SparkSession, types
 import sys
@@ -27,8 +27,8 @@ def main(model_path):
     latitude = 49.2771
     longitude = -122.9146
     elevation = 330.0
-    tmax = 12
-    tmax_tomorrow_temp = 0
+    tmax = 12.0
+    tmax_tomorrow_temp = 0.0
     due_date_obj = datetime(2025, 11, 21)
     due_date = due_date_obj.date()
     tomorrow_date = (due_date_obj + timedelta(days=1)).date()
