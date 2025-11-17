@@ -89,8 +89,8 @@ def main(inputs, output):
     predictions = model.transform(validation)
     prediction_add_yesterday = model_add_yesterday.transform(validation)
     # Save model
-    # model.write().overwrite().save(output)
-    model_add_yesterday.write().overwrite().save(output) # If you need to test the previous model, please comment model_add_yesterday and uncomment model line
+    model.write().overwrite().save(output)
+    # model_add_yesterday.write().overwrite().save(output) # If you need to test the previous model, please comment model_add_yesterday and uncomment model line
     # Evaluation
     def evaluate(preds, name):
         for metric in ["rmse", "r2"]:
