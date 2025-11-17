@@ -58,7 +58,22 @@ rmse = 8.216954348438222
 with yesterday:
 r2 = 0.8664519993051778
 rmse = 4.719128904676805
+
 6. If you're using a tree-based model, you'll find a .feature Importances property that describes the relative importance of each feature
 (code commented out in weather_test.py; if not, skip this question).
 Have a look with and without the “yesterday's temperature” feature: do the results make sense and suggest that your model is making decisions reasonably?
 With “yesterday's temperature”, is it just predicting “same as yesterday”?
+with yesterday:
+r2 = 0.8664519993051778
+rmse = 4.719128904676805
+(5,[0,1,2,3,4],[0.18566193940469544,0.059082469122771854,0.02360408536638901,0.09999233636803183,0.631659169738112])
+without yesterday:
+r2 = 0.5916430590755708
+rmse = 8.278465746122952
+(4,[0,1,2,3],[0.44391889288614295,0.13306408584586873,0.06356437867916417,0.35945264258882426])
+
+With the yesterday temperature feature, the model gives it the highest importance (about 63%).
+This makes sense because yesterday’s temperature is usually the best clue for today’s temperature.
+Also the performance increased, with r2 increase to 86.6%, and rmse goes down extremly.
+The other features still have non-zero importance, so the model is not just copying yesterday’s value.
+The results look reasonable, and the model is not simply predicting “same as yesterday.”
