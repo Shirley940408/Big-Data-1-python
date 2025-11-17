@@ -43,9 +43,21 @@ Validation score for LAB model: 0.712894
 4. When predicting the tmax values, did you over-fit the training data (and for which training/validation sets)?
 Validation rmse for random forest model: 4.78422
 Validation r2 for random forest model: 0.871994
+test result
+r2 = 0.59768893465184
+rmse = 8.216954348438222
+Even the test performance is lower than validation, this does not conclude overfitting.
+The model performs similarly on the training and validation sets.
+The drop on the test set is due to test dataset using different stations and seasons.
 
 5. What were your testing scores for your model with and without the “yesterday's temperature” feature?
+baseline:
+r2 = 0.59768893465184
+rmse = 8.216954348438222
 
+with yesterday:
+r2 = 0.8664519993051778
+rmse = 4.719128904676805
 6. If you're using a tree-based model, you'll find a .feature Importances property that describes the relative importance of each feature
 (code commented out in weather_test.py; if not, skip this question).
 Have a look with and without the “yesterday's temperature” feature: do the results make sense and suggest that your model is making decisions reasonably?

@@ -1,4 +1,4 @@
-# spark-submit weather_train.py /courses/732/tmax-1 weather-model
+# spark-submit weather_train.py /courses/732/tmax-1 weather-model | grep Validation
 from pyspark.sql import SparkSession, types
 import sys
 assert sys.version_info >= (3, 5)

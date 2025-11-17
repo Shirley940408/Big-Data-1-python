@@ -44,7 +44,7 @@ def test_model(model_file, inputs):
     print('rmse =', rmse)
 
     # If you used a regressor that gives .featureImportances, maybe have a look...
-    #print(model.stages[-1].featureImportances)
+    print(model.stages[-1].featureImportances)
 
 
 if __name__ == '__main__':
